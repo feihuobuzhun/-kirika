@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 
+import { FromOption, ToOption } from "@/lib/convert/memo"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -12,12 +13,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-const FROM_OPTIONS = ["memos"] as const
-const TO_OPTIONS = ["local"] as const
-
-type FromOption = (typeof FROM_OPTIONS)[number]
-type ToOption = (typeof TO_OPTIONS)[number]
-
 export default function Selection() {
   const [from, setFrom] = useState<FromOption | undefined>()
   const [to, setTo] = useState<ToOption | undefined>()
@@ -26,47 +21,73 @@ export default function Selection() {
   const [ingredient, setIngredient] = useState<string | undefined>()
 
   return (
-    <div>
-      <div className="flex gap-4">
-        <Select
-          value={from}
-          onValueChange={(value) => setFrom(value as FromOption)}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="From" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="memos">Memos</SelectItem>
-          </SelectContent>
-        </Select>
+    <>
+      <div>
+        <div className="flex gap-4">
+          <Select
+            value={from}
+            onValueChange={(value) => setFrom(value as FromOption)}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="From" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="memos">Memos</SelectItem>
+            </SelectContent>
+          </Select>
 
-        <Select value={to} onValueChange={(value) => setTo(value as ToOption)}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="To" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="local">Local</SelectItem>
-          </SelectContent>
-        </Select>
+          <Select
+            value={to}
+            onValueChange={(value) => setTo(value as ToOption)}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="To" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="local">Local</SelectItem>
+            </SelectContent>
+          </Select>
 
-        <Button disabled={!from || !to || (requiredIngredient && !ingredient)}>
-          Convert
-        </Button>
-      </div>
+          <Button
+            disabled={!from || !to || (requiredIngredient && !ingredient)}
+            onClick={() => {
+              const url =
+                "/api" +
+                "?from=" +
+                from +
+                "&to=" +
+                to +
+                "&ingredients=" +
+                encodeURIComponent(ingredient || "")
 
-      {requiredIngredient && (
-        <div className="mt-4">
-          <p className="text-sm font-semibold text-gray-500">
-            Required ingredients:
-          </p>
-          <Input
-            className="mt-2"
-            placeholder={requiredIngredient}
-            value={ingredient}
-            onChange={(event) => setIngredient(event.target.value)}
-          />
+              const a = document.createElement("a")
+              a.href = url
+              document.body.appendChild(a)
+              a.click()
+              document.body.removeChild(a)
+            }}
+          >
+            Convert
+          </Button>
         </div>
-      )}
-    </div>
+
+        {requiredIngredient && (
+          <div className="mt-4">
+            <p className="text-sm font-semibold text-gray-500">
+              Required ingredient:
+            </p>
+            <Input
+              className="mt-2"
+              placeholder={requiredIngredient}
+              type="text"
+              id="ingredient"
+              name="ingredient"
+              value={ingredient}
+              onChange={(event) => setIngredient(event.target.value)}
+            />
+          </div>
+        )}
+      </div>
+    </>
   )
 }
