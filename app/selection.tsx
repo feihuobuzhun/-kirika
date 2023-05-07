@@ -12,20 +12,56 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function Selection() {
-  const [from, setFrom] = useState<FromOption | undefined>()
-  const [to, setTo] = useState<ToOption | undefined>()
+  const { toast } = useToast()
 
-  const requiredIngredient = from === "memos" ? "OpenAPI" : undefined
-  const [ingredient, setIngredient] = useState<string | undefined>()
+  const [from, setFrom] = useState<FromOption | null>(null)
+  const [to, setTo] = useState<ToOption | null>(null)
+
+  const requiredIngredient = from === "memos" ? "OpenAPI" : null
+  const [ingredient, setIngredient] = useState<string | null>(null)
+
+  const handleConvert = () => {
+    try {
+      if (
+        !ingredient?.match(
+          /^(http|https):\/\/.*\/api\/memo\?openId=[a-zA-Z0-9]*/
+        )
+      ) {
+        throw new Error("Invalid ingredient")
+      }
+
+      const url =
+        "/api" +
+        "?from=" +
+        from +
+        "&to=" +
+        to +
+        "&ingredients=" +
+        encodeURIComponent(ingredient || "")
+
+      const a = document.createElement("a")
+      a.href = url
+      a.target = "_blank"
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+    } catch (error) {
+      toast({
+        title: "Please input a valid ingredient",
+        description: (error as any).message,
+      })
+    }
+  }
 
   return (
     <>
       <div>
         <div className="flex gap-4">
           <Select
-            value={from}
+            value={from || undefined}
             onValueChange={(value) => setFrom(value as FromOption)}
           >
             <SelectTrigger className="w-[180px]">
@@ -37,7 +73,7 @@ export default function Selection() {
           </Select>
 
           <Select
-            value={to}
+            value={to || undefined}
             onValueChange={(value) => setTo(value as ToOption)}
           >
             <SelectTrigger className="w-[180px]">
@@ -49,23 +85,8 @@ export default function Selection() {
           </Select>
 
           <Button
-            disabled={!from || !to || (requiredIngredient && !ingredient)}
-            onClick={() => {
-              const url =
-                "/api" +
-                "?from=" +
-                from +
-                "&to=" +
-                to +
-                "&ingredients=" +
-                encodeURIComponent(ingredient || "")
-
-              const a = document.createElement("a")
-              a.href = url
-              document.body.appendChild(a)
-              a.click()
-              document.body.removeChild(a)
-            }}
+            disabled={!from || !to || (!!requiredIngredient && !ingredient)}
+            onClick={handleConvert}
           >
             Convert
           </Button>
@@ -82,7 +103,7 @@ export default function Selection() {
               type="text"
               id="ingredient"
               name="ingredient"
-              value={ingredient}
+              value={ingredient || ""}
               onChange={(event) => setIngredient(event.target.value)}
             />
           </div>

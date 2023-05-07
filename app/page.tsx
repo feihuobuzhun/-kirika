@@ -11,7 +11,7 @@ export default function IndexPage() {
         </h1>
       </div>
 
-      <div className="flex grow flex-col items-center justify-center">
+      <div className="mt-10 flex grow flex-col">
         <Selection />
       </div>
     </section>

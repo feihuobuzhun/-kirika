@@ -17,7 +17,6 @@ export async function GET(request: Request) {
         ? ingredients[0]
         : ingredients
       const res = await convertMemoToLocalZip(ingredient)
-      console.log(res)
       return new Response(res, {
         headers: {
           "Content-Type": "application/zip",
