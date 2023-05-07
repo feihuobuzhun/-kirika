@@ -46,8 +46,8 @@ export async function convertMemoToLocalZip(openAPI: string) {
   ).map((memo) => ({
     ...memo,
     content: `---
-date: ${new Date(memo.created).toISOString()}
-updated: ${new Date(memo.updated).toISOString()}
+date: ${new Date(memo.created * 1000).toISOString()}
+updated: ${new Date(memo.updated * 1000).toISOString()}
 ---
 
 ${memo.content}
