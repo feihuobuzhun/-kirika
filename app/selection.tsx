@@ -30,7 +30,7 @@ export default function Selection() {
           /^(http|https):\/\/.*\/api\/memo\?openId=[a-zA-Z0-9]*/
         )
       ) {
-        throw new Error("Invalid ingredient")
+        throw new Error("Invalid OpenAPI URL")
       }
 
       const url =
@@ -98,7 +98,7 @@ export default function Selection() {
               Required ingredient:
             </p>
             <Input
-              className="mt-2"
+              className="mt-2 max-w-xl"
               placeholder={requiredIngredient}
               type="text"
               id="ingredient"
