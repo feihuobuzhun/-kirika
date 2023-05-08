@@ -18,7 +18,8 @@ export async function convertMemoToLocalZip(openAPI: string) {
         content: memo.content,
         resourceList: await Promise.all(
           memo.resourceList.map(async (resource) => {
-            console.log(
+            const memoResourceUrl =
+              resource.externalLink ||
               url.origin +
                 "/o/r/" +
                 resource.id +
@@ -26,18 +27,11 @@ export async function convertMemoToLocalZip(openAPI: string) {
                 resource.publicId +
                 "/" +
                 resource.filename
-            )
             return {
               filename: resource.filename,
-              content: await fetch(
-                url.origin +
-                  "/o/r/" +
-                  resource.id +
-                  "/" +
-                  resource.publicId +
-                  "/" +
-                  resource.filename
-              ).then((res) => res.arrayBuffer()),
+              content: await fetch(memoResourceUrl).then((res) =>
+                res.arrayBuffer()
+              ),
             }
           })
         ),
