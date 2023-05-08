@@ -9,51 +9,52 @@ export type ToOption = (typeof TO_OPTIONS)[number]
 export async function convertMemoToLocalZip(openAPI: string) {
   const url = new URL(openAPI)
   const memos = (await fetch(openAPI).then((res) => res.json())) as MemoList
-  const memoList = (
-    await Promise.all(
-      memos.data.map(async (memo) => ({
-        id: memo.id,
-        created: memo.createdTs,
-        updated: memo.updatedTs,
-        content: memo.content,
-        resourceList: await Promise.all(
-          memo.resourceList.map(async (resource) => {
-            const memoResourceUrl =
-              resource.externalLink ||
-              url.origin +
-                "/o/r/" +
-                resource.id +
-                "/" +
-                resource.publicId +
-                "/" +
-                resource.filename
-            return {
-              filename: resource.filename,
-              content: await fetch(memoResourceUrl).then((res) =>
-                res.arrayBuffer()
-              ),
-            }
-          })
-        ),
-      }))
-    )
-  ).map((memo) => ({
+  const resources = memos.data.map((memo) => memo.resourceList).flat()
+  const filetedResourceList = await Promise.all(
+    resources
+      .filter((resource, index) => {
+        const firstIndex = resources.findIndex(
+          (r) => r.publicId === resource.publicId
+        )
+        return index === firstIndex
+      })
+      .map(async (resource) => {
+        const memoResourceUrl =
+          resource.externalLink ||
+          url.origin +
+            "/o/r/" +
+            resource.id +
+            "/" +
+            resource.publicId +
+            "/" +
+            resource.filename
+
+        return {
+          filename: resource.filename,
+          content: await fetch(memoResourceUrl).then((res) =>
+            res.arrayBuffer()
+          ),
+        }
+      })
+  )
+
+  const memoList = memos.data.map((memo) => ({
     ...memo,
     content: `---
-date: ${new Date(memo.created * 1000).toISOString()}
-updated: ${new Date(memo.updated * 1000).toISOString()}
+date: ${new Date(memo.createdTs * 1000).toISOString()}
+updated: ${new Date(memo.updatedTs * 1000).toISOString()}
 ---
 
 ${memo.content}
+
 ${
   memo.resourceList.length > 0
-    ? `
-${memo.resourceList
-  .map(
-    (resource) => `![${resource.filename}](./resources/${resource.filename})`
-  )
-  .join("\n")}
-`
+    ? `${memo.resourceList
+        .map(
+          (resource) =>
+            `![${resource.filename}](./resources/${resource.filename})`
+        )
+        .join("\n")}`
     : ""
 }
 `,
@@ -61,16 +62,16 @@ ${memo.resourceList
 
   const zip = new JSZip()
 
+  const resourceFolder = zip?.folder("resources")
+  for (const { filename, content } of filetedResourceList) {
+    resourceFolder?.file(filename, content)
+  }
+
   for (const memo of memoList) {
-    const folder = zip.folder(`${memo.id}`)
     const filename = `${memo.id}.md`
     const content = memo.content
-    folder?.file(filename, content)
+    zip?.file(filename, content)
     if (memo.resourceList.length === 0) continue
-    const resourceFolder = folder?.folder("resources")
-    for (const { filename, content } of memo.resourceList) {
-      resourceFolder?.file(filename, content)
-    }
   }
 
   return await zip.generateAsync({
