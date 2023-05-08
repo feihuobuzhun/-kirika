@@ -1,5 +1,7 @@
 # note-convert
 
+> If you encounter problems related to [resource limitations](https://vercel.com/docs/concepts/limits/overview), it is recommended to clone the code for local use
+
 **WIP**
 
 This is a website that converts your notes between different platforms.
