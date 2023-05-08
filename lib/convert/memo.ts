@@ -1,12 +1,6 @@
 import JSZip from "jszip"
 
-export const FROM_OPTIONS = ["memos"] as const
-export const TO_OPTIONS = ["local"] as const
-
-export type FromOption = (typeof FROM_OPTIONS)[number]
-export type ToOption = (typeof TO_OPTIONS)[number]
-
-export async function convertMemoToLocalZip(openAPI: string) {
+export async function convertMemoToLocalZip(openAPI: string): Promise<Blob> {
   const url = new URL(openAPI)
 
   const memos = (await fetch(openAPI).then((res) => res.json())) as MemoList
@@ -77,11 +71,11 @@ ${
   })
 }
 
-export interface MemoList {
+interface MemoList {
   data: Memo[]
 }
 
-export interface Memo {
+interface Memo {
   id: number
   rowStatus: string
   creatorId: number
@@ -95,7 +89,7 @@ export interface Memo {
   relationList: any
 }
 
-export interface ResourceList {
+interface ResourceList {
   id: number
   creatorId: number
   createdTs: number

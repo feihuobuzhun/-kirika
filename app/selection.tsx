@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 
-import { FromOption, ToOption } from "@/lib/convert/memo"
+import { FromOptions, OpenAPI_SCHEMA, ToOptions } from "@/lib/convert/index"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -17,30 +17,26 @@ import { useToast } from "@/components/ui/use-toast"
 export default function Selection() {
   const { toast } = useToast()
 
-  const [from, setFrom] = useState<FromOption | null>(null)
-  const [to, setTo] = useState<ToOption | null>(null)
+  const [from, setFrom] = useState<FromOptions | null>(null)
+  const [to, setTo] = useState<ToOptions | null>(null)
 
-  const requiredIngredient = from === "memos" ? "OpenAPI" : null
-  const [ingredient, setIngredient] = useState<string | null>(null)
+  const requiredIngredients = from === "memos" ? ["OpenAPI"] : null
+  const [ingredients, setIngredients] = useState<string[]>([])
 
   const handleConvert = () => {
-    try {
-      if (
-        !ingredient?.match(
-          /^(http|https):\/\/.*\/api\/memo\?openId=[a-zA-Z0-9]*/
-        )
-      ) {
-        throw new Error("Invalid OpenAPI URL")
-      }
-
+    if (
+      from === "memos" &&
+      to === "local" &&
+      OpenAPI_SCHEMA.safeParse(ingredients[0]).success
+    ) {
       const url =
         "/api" +
         "?from=" +
         from +
         "&to=" +
         to +
-        "&ingredients=" +
-        encodeURIComponent(ingredient || "")
+        "&OpenAPI=" +
+        encodeURIComponent(ingredients[0])
 
       const a = document.createElement("a")
       a.href = url
@@ -48,10 +44,10 @@ export default function Selection() {
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
-    } catch (error) {
+    } else {
       toast({
         title: "Please input a valid ingredient",
-        description: (error as any).message,
+        description: "OpenAPI is required for converting from Memos to Local",
       })
     }
   }
@@ -62,7 +58,7 @@ export default function Selection() {
         <div className="flex gap-4">
           <Select
             value={from || undefined}
-            onValueChange={(value) => setFrom(value as FromOption)}
+            onValueChange={(value) => setFrom(value as FromOptions)}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="From" />
@@ -74,7 +70,7 @@ export default function Selection() {
 
           <Select
             value={to || undefined}
-            onValueChange={(value) => setTo(value as ToOption)}
+            onValueChange={(value) => setTo(value as ToOptions)}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="To" />
@@ -85,29 +81,42 @@ export default function Selection() {
           </Select>
 
           <Button
-            disabled={!from || !to || (!!requiredIngredient && !ingredient)}
+            disabled={
+              !from ||
+              !to ||
+              (requiredIngredients?.length !== 0 &&
+                ingredients.filter((ingredient) => ingredient.trim() !== "")
+                  .length !== requiredIngredients?.length)
+            }
             onClick={handleConvert}
           >
             Convert
           </Button>
         </div>
 
-        {requiredIngredient && (
-          <div className="mt-4">
-            <p className="text-sm font-semibold text-gray-500">
-              Required ingredient:
-            </p>
-            <Input
-              className="mt-2 max-w-[620px]"
-              placeholder={requiredIngredient}
-              type="text"
-              id="ingredient"
-              name="ingredient"
-              value={ingredient || ""}
-              onChange={(event) => setIngredient(event.target.value)}
-            />
-          </div>
-        )}
+        {requiredIngredients?.length !== 0 &&
+          requiredIngredients?.map((ingredient, index) => (
+            <div className="mt-4">
+              <p className="text-sm font-semibold text-gray-500">
+                Required ingredient:
+              </p>
+              <Input
+                className="mt-2 max-w-[620px]"
+                placeholder={ingredient}
+                type="text"
+                id="ingredient"
+                name="ingredient"
+                value={ingredients[index] || ""}
+                onChange={(event) =>
+                  setIngredients((pre) => {
+                    const newIngredients = [...pre]
+                    newIngredients[index] = event.target.value
+                    return newIngredients
+                  })
+                }
+              />
+            </div>
+          ))}
       </div>
     </>
   )
