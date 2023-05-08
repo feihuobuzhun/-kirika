@@ -98,7 +98,7 @@ export default function Selection() {
               Required ingredient:
             </p>
             <Input
-              className="mt-2 max-w-xl"
+              className="mt-2 max-w-[620px]"
               placeholder={requiredIngredient}
               type="text"
               id="ingredient"
