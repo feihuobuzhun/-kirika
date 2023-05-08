@@ -63,16 +63,13 @@ ${
   const zip = new JSZip()
 
   const resourceFolder = zip?.folder("resources")
-  for (const { filename, content } of filetedResourceList) {
-    resourceFolder?.file(filename, content)
-  }
+  filetedResourceList.forEach((resource) => {
+    resourceFolder?.file(resource.filename, resource.content)
+  })
 
-  for (const memo of memoList) {
-    const filename = `${memo.id}.md`
-    const content = memo.content
-    zip?.file(filename, content)
-    if (memo.resourceList.length === 0) continue
-  }
+  memoList.forEach((memo) => {
+    zip?.file(`${memo.id}.md`, memo.content)
+  })
 
   return await zip.generateAsync({
     type: "blob",
