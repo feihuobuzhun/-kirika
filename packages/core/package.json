@@ -2,7 +2,9 @@
   "name": "@kirika/core",
   "version": "1.0.0",
   "description": "",
-  "scripts": {},
+  "scripts": {
+    "build": "unbuild"
+  },
   "type": "module",
   "exports": {
     ".": {
