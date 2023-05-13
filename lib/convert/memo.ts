@@ -1,6 +1,6 @@
 import JSZip from "jszip"
 
-export async function convertMemoToLocalZip(openAPI: string): Promise<Blob> {
+export async function convertMemosToLocalZip(openAPI: string): Promise<Blob> {
   const url = new URL(openAPI)
 
   const memos = (await fetch(openAPI).then((res) => res.json())) as MemoList
