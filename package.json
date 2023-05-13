@@ -1,4 +1,13 @@
 {
-  "name": "kirika",
-  "scripts": {}
+  "name": "@kirika/monorepo",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@8.4.0",
+  "version": "1.0.0",
+  "scripts": {},
+  "devDependencies": {
+    "@types/node": "^20.1.0",
+    "typescript": "^5.0.4",
+    "unbuild": "^1.2.1"
+  }
 }

@@ -1,9 +1,10 @@
+import { convertMemosToLocalZip } from "@kirika/core"
+
 import {
   FROM_OPTIONS_SCHEMA,
   OpenAPI_SCHEMA,
   TO_OPTIONS_SCHEMA,
 } from "@/lib/convert"
-import { convertMemosToLocalZip } from "@/lib/convert/memo"
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
