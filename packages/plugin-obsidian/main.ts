@@ -20,129 +20,7 @@ export default class MemosSyncPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings()
 
-		this.addRibbonIcon("refresh-ccw", "Memos Sync", async (evt: MouseEvent) => {
-			this.loadSettings()
-			const { openAPI, folderToSync, debug, lastSyncTime } = this.settings
-
-			if (openAPI === "") {
-				new Notice("Please enter your OpenAPI key in settings.")
-				return
-			}
-
-			try {
-				new Notice("Start syncing memos.")
-
-				const res = await fetchMemosWithResource(openAPI)
-				if (debug) {
-					new Notice(
-						`Fetch memos from API successfully. Total: ${res.memos.length}`
-					)
-				}
-
-				const vault = this.app.vault
-
-				const isMemosFolderExists = await vault.adapter.exists(
-					`${folderToSync}/memos`
-				)
-				if (!isMemosFolderExists) {
-					await vault.createFolder(`${folderToSync}/memos`)
-					if (debug) {
-						new Notice("Created memos folder.")
-					}
-				}
-				const isResourcesFolderExists = await vault.adapter.exists(
-					`${folderToSync}/resources`
-				)
-				if (!isResourcesFolderExists) {
-					await vault.createFolder(`${folderToSync}/resources`)
-					if (debug) {
-						new Notice("Created resources folder.")
-					}
-				}
-
-				res.memos.forEach((memo) => {
-					const memoPath = `${folderToSync}/memos/${memo.id}.md`
-					const memoContent = memo.content
-					const lastUpdated = memo.updatedTs
-
-					if (lastSyncTime && lastUpdated * 1000 < lastSyncTime) {
-						if (debug) {
-							new Notice(
-								`Skip memo ${memo.id}, because ${
-									lastUpdated * 1000
-								} < ${lastSyncTime}`,
-								0
-							)
-						}
-						return
-					}
-
-					vault.adapter.write(memoPath, memoContent)
-					if (debug) {
-						new Notice(`Synced memo: ${memo.id}`)
-					}
-				})
-
-				res.resources.forEach(async (resource) => {
-					const resourcePath = `${folderToSync}/resources/${resource.filename}`
-
-					const isResourceExists = await vault.adapter.exists(resourcePath)
-					if (isResourceExists) {
-						return
-					}
-
-					const resourceContent = resource.content
-					vault.adapter.writeBinary(resourcePath, resourceContent)
-					if (debug) {
-						new Notice(`Synced resource: ${resource.filename}`)
-					}
-				})
-
-				// delete memos and resources that are not in the API response
-				const memosInAPI = res.memos.map(
-					(memo) => `${folderToSync}/memos/${memo.id}.md`
-				)
-				const resourcesInAPI = res.resources.map(
-					(resource) => `${folderToSync}/resources/${resource.filename}`
-				)
-
-				const memosInVault = await vault.adapter.list(`${folderToSync}/memos`)
-				memosInVault.files.forEach(async (memo) => {
-					if (!memosInAPI.includes(memo)) {
-						await vault.adapter.remove(memo)
-						if (debug) {
-							new Notice(`Deleted memo: ${memo}`)
-						}
-					}
-				})
-
-				const resourcesInVault = await vault.adapter.list(
-					`${folderToSync}/resources`
-				)
-				resourcesInVault.files.forEach(async (resource) => {
-					if (!resourcesInAPI.includes(resource)) {
-						await vault.adapter.remove(resource)
-						if (debug) {
-							new Notice(`Deleted resource: ${resource}`)
-						}
-					}
-				})
-
-				new Notice(`Sync memos successfully.`)
-
-				this.saveData({
-					...this.settings,
-					lastSyncTime: Date.now(),
-				})
-			} catch (e) {
-				new Notice(
-					"Failed to sync memos. Please check your OpenAPI key and network.",
-					0
-				)
-				console.error(e)
-			}
-		})
-
+		this.addRibbonIcon("refresh-ccw", "Memos Sync", this.sync.bind(this))
 		this.addSettingTab(new MemosSyncSettingTab(this.app, this))
 	}
 
@@ -154,6 +32,118 @@ export default class MemosSyncPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings)
+	}
+
+	async debug(message: string) {
+		if (this.settings.debug) {
+			new Notice(message, 0)
+		}
+	}
+
+	async log(message: string, duration?: number) {
+		new Notice(message, duration)
+	}
+
+	async sync() {
+		await this.loadSettings()
+		const { openAPI, folderToSync, lastSyncTime } = this.settings
+
+		if (openAPI === "") {
+			this.log("Please enter your OpenAPI key.")
+			return
+		}
+
+		try {
+			this.log("Start syncing memos.")
+
+			const res = await fetchMemosWithResource(openAPI)
+			this.debug(
+				`Fetch memos from API successfully. Total: ${res.memos.length}`
+			)
+
+			const vault = this.app.vault
+			const adapter = this.app.vault.adapter
+
+			const isMemosFolderExists = await adapter.exists(`${folderToSync}/memos`)
+			if (!isMemosFolderExists) {
+				await vault.createFolder(`${folderToSync}/memos`)
+				this.debug("Created memos folder.")
+			}
+			const isResourcesFolderExists = await adapter.exists(
+				`${folderToSync}/resources`
+			)
+			if (!isResourcesFolderExists) {
+				await vault.createFolder(`${folderToSync}/resources`)
+				this.debug("Created resources folder.")
+			}
+
+			res.memos.forEach((memo) => {
+				const memoPath = `${folderToSync}/memos/${memo.id}.md`
+				const memoContent = memo.content
+				const lastUpdated = memo.updatedTs
+
+				if (lastSyncTime && lastUpdated * 1000 < lastSyncTime) {
+					this.debug(
+						`Skip memo ${memo.id}, because ${
+							lastUpdated * 1000
+						} < ${lastSyncTime}`
+					)
+					return
+				}
+				adapter.write(memoPath, memoContent)
+				this.debug(`Synced memo: ${memo.id}`)
+			})
+
+			res.resources.forEach(async (resource) => {
+				const resourcePath = `${folderToSync}/resources/${resource.filename}`
+
+				const isResourceExists = await adapter.exists(resourcePath)
+				if (isResourceExists) {
+					return
+				}
+
+				const resourceContent = resource.content
+				adapter.writeBinary(resourcePath, resourceContent)
+				this.debug(`Synced resource: ${resource.filename}`)
+			})
+
+			// delete memos and resources that are not in the API response
+			const memosInAPI = res.memos.map(
+				(memo) => `${folderToSync}/memos/${memo.id}.md`
+			)
+			const resourcesInAPI = res.resources.map(
+				(resource) => `${folderToSync}/resources/${resource.filename}`
+			)
+
+			const memosInVault = await adapter.list(`${folderToSync}/memos`)
+			memosInVault.files.forEach(async (memo) => {
+				if (!memosInAPI.includes(memo)) {
+					await adapter.remove(memo)
+					this.debug(`Deleted memo: ${memo}`)
+				}
+			})
+
+			const resourcesInVault = await adapter.list(`${folderToSync}/resources`)
+			resourcesInVault.files.forEach(async (resource) => {
+				if (!resourcesInAPI.includes(resource)) {
+					await adapter.remove(resource)
+					this.debug(`Deleted resource: ${resource}`)
+				}
+			})
+
+			this.log(`Sync memos successfully.`)
+
+			this.saveData({
+				...this.settings,
+				lastSyncTime: Date.now(),
+			})
+		} catch (e) {
+			this.log(
+				"Failed to sync memos. Please check your OpenAPI key and network.",
+				0
+			)
+			console.error(e)
+		}
 	}
 }
 
