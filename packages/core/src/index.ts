@@ -1,9 +1,51 @@
-import JSZip from "jszip";
+type MemoAPIResponse = {
+  data: Memo[];
+};
 
-export async function convertMemosToLocalZip(openAPI: string): Promise<Blob> {
+export type Memo = {
+  id: number;
+  rowStatus: string;
+  creatorId: number;
+  createdTs: number;
+  updatedTs: number;
+  content: string;
+  visibility: string;
+  pinned: boolean;
+  creatorName: string;
+  resourceList: ResourceList[];
+  relationList: any;
+};
+
+type ResourceList = {
+  id: number;
+  creatorId: number;
+  createdTs: number;
+  updatedTs: number;
+  filename: string;
+  internalPath: string;
+  externalLink: string;
+  type: string;
+  size: number;
+  publicId: string;
+  linkedMemoAmount: number;
+};
+
+export type MemosWithResource = {
+  resources: {
+    filename: string;
+    content: ArrayBuffer;
+  }[];
+  memos: Memo[];
+};
+
+export async function fetchMemosWithResource(
+  openAPI: string
+): Promise<MemosWithResource> {
   const url = new URL(openAPI);
 
-  const memos = (await fetch(openAPI).then((res) => res.json())) as MemoList;
+  const memos = (await fetch(openAPI).then((res) =>
+    res.json()
+  )) as MemoAPIResponse;
 
   const resources = memos.data.map((memo) => memo.resourceList).flat();
   const filetedResources = resources.filter((resource, index) => {
@@ -47,7 +89,7 @@ ${
     ? `${memo.resourceList
         .map(
           (resource) =>
-            `![${resource.filename}](./resources/${resource.filename})`
+            `![${resource.filename}](../resources/${resource.filename})`
         )
         .join("\n")}`
     : ""
@@ -55,50 +97,8 @@ ${
 `,
   }));
 
-  const zip = new JSZip();
-
-  const resourceFolder = zip?.folder("resources");
-  resourceList.forEach((resource) => {
-    resourceFolder?.file(resource.filename, resource.content);
-  });
-
-  memoList.forEach((memo) => {
-    zip?.file(`${memo.id}.md`, memo.content);
-  });
-
-  return await zip.generateAsync({
-    type: "blob",
-  });
-}
-
-interface MemoList {
-  data: Memo[];
-}
-
-interface Memo {
-  id: number;
-  rowStatus: string;
-  creatorId: number;
-  createdTs: number;
-  updatedTs: number;
-  content: string;
-  visibility: string;
-  pinned: boolean;
-  creatorName: string;
-  resourceList: ResourceList[];
-  relationList: any;
-}
-
-interface ResourceList {
-  id: number;
-  creatorId: number;
-  createdTs: number;
-  updatedTs: number;
-  filename: string;
-  internalPath: string;
-  externalLink: string;
-  type: string;
-  size: number;
-  publicId: string;
-  linkedMemoAmount: number;
+  return {
+    resources: resourceList,
+    memos: memoList,
+  };
 }

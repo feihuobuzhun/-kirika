@@ -1,10 +1,11 @@
-import { convertMemosToLocalZip } from "@kirika/core"
+import { fetchMemosWithResource } from "@kirika/core"
 
 import {
   FROM_OPTIONS_SCHEMA,
   OpenAPI_SCHEMA,
   TO_OPTIONS_SCHEMA,
 } from "@/lib/convert"
+import { zipMemos } from "@/lib/convert/zip"
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -25,8 +26,9 @@ export async function GET(request: Request) {
   if (from === "memos" && to === "local") {
     if (withMemosOpenAPI) {
       const OpenAPI = searchParams.get("OpenAPI") as string
-      const res = await convertMemosToLocalZip(OpenAPI)
-      return new Response(res, {
+      const memosWithResource = await fetchMemosWithResource(OpenAPI)
+      const zip = await zipMemos(memosWithResource)
+      return new Response(zip, {
         headers: {
           "Content-Type": "application/zip",
           "Content-Disposition": `attachment; filename="memos.zip"`,
