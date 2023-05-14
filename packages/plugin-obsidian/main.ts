@@ -1,22 +1,17 @@
-import {
-	App,
-	Editor,
-	MarkdownView,
-	Modal,
-	Notice,
-	Plugin,
-	PluginSettingTab,
-	Setting,
-} from "obsidian"
-
-// Remember to rename these classes and interfaces!
+import { fetchMemosWithResource } from "@kirika/core"
+import { App, Notice, Plugin, PluginSettingTab, Setting } from "obsidian"
 
 interface MemosSyncPluginSettings {
 	openAPI: string
+	folderToSync: string
+	debug: boolean
+	lastSyncTime?: number
 }
 
 const DEFAULT_SETTINGS: MemosSyncPluginSettings = {
 	openAPI: "",
+	folderToSync: "Memos Sync",
+	debug: false,
 }
 
 export default class MemosSyncPlugin extends Plugin {
@@ -25,73 +20,130 @@ export default class MemosSyncPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings()
 
-		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon(
-			"dice",
-			"Sample Plugin",
-			(evt: MouseEvent) => {
-				// Called when the user clicks the icon.
-				new Notice("This is a notice!")
+		this.addRibbonIcon("refresh-ccw", "Memos Sync", async (evt: MouseEvent) => {
+			this.loadSettings()
+			const { openAPI, folderToSync, debug, lastSyncTime } = this.settings
+
+			if (openAPI === "") {
+				new Notice("Please enter your OpenAPI key in settings.")
+				return
 			}
-		)
-		// Perform additional things with the ribbon
-		ribbonIconEl.addClass("my-plugin-ribbon-class")
 
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem()
-		statusBarItemEl.setText("Status Bar Text")
+			try {
+				new Notice("Start syncing memos.")
 
-		// This adds a simple command that can be triggered anywhere
-		this.addCommand({
-			id: "open-sample-modal-simple",
-			name: "Open sample modal (simple)",
-			callback: () => {
-				new MemosSyncModal(this.app).open()
-			},
-		})
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: "sample-editor-command",
-			name: "Sample editor command",
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				console.log(editor.getSelection())
-				editor.replaceSelection("Sample Editor Command")
-			},
-		})
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: "open-sample-modal-complex",
-			name: "Open sample modal (complex)",
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView =
-					this.app.workspace.getActiveViewOfType(MarkdownView)
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new MemosSyncModal(this.app).open()
+				const res = await fetchMemosWithResource(openAPI)
+				if (debug) {
+					new Notice(
+						`Fetch memos from API successfully. Total: ${res.memos.length}`
+					)
+				}
+
+				const vault = this.app.vault
+
+				const isMemosFolderExists = await vault.adapter.exists(
+					`${folderToSync}/memos`
+				)
+				if (!isMemosFolderExists) {
+					await vault.createFolder(`${folderToSync}/memos`)
+					if (debug) {
+						new Notice("Created memos folder.")
+					}
+				}
+				const isResourcesFolderExists = await vault.adapter.exists(
+					`${folderToSync}/resources`
+				)
+				if (!isResourcesFolderExists) {
+					await vault.createFolder(`${folderToSync}/resources`)
+					if (debug) {
+						new Notice("Created resources folder.")
+					}
+				}
+
+				res.memos.forEach((memo) => {
+					const memoPath = `${folderToSync}/memos/${memo.id}.md`
+					const memoContent = memo.content
+					const lastUpdated = memo.updatedTs
+
+					if (lastSyncTime && lastUpdated * 1000 < lastSyncTime) {
+						if (debug) {
+							new Notice(
+								`Skip memo ${memo.id}, because ${
+									lastUpdated * 1000
+								} < ${lastSyncTime}`,
+								0
+							)
+						}
+						return
 					}
 
-					// This command will only show up in Command Palette when the check function returns true
-					return true
-				}
-			},
+					vault.adapter.write(memoPath, memoContent)
+					if (debug) {
+						new Notice(`Synced memo: ${memo.id}`)
+					}
+				})
+
+				res.resources.forEach(async (resource) => {
+					const resourcePath = `${folderToSync}/resources/${resource.filename}`
+
+					const isResourceExists = await vault.adapter.exists(resourcePath)
+					if (isResourceExists) {
+						return
+					}
+
+					const resourceContent = resource.content
+					vault.adapter.writeBinary(resourcePath, resourceContent)
+					if (debug) {
+						new Notice(`Synced resource: ${resource.filename}`)
+					}
+				})
+
+				// delete memos and resources that are not in the API response
+				const memosInAPI = res.memos.map(
+					(memo) => `${folderToSync}/memos/${memo.id}.md`
+				)
+				const resourcesInAPI = res.resources.map(
+					(resource) => `${folderToSync}/resources/${resource.filename}`
+				)
+
+				const memosInVault = await vault.adapter.list(`${folderToSync}/memos`)
+				memosInVault.files.forEach(async (memo) => {
+					if (!memosInAPI.includes(memo)) {
+						await vault.adapter.remove(memo)
+						if (debug) {
+							new Notice(`Deleted memo: ${memo}`)
+						}
+					}
+				})
+
+				const resourcesInVault = await vault.adapter.list(
+					`${folderToSync}/resources`
+				)
+				resourcesInVault.files.forEach(async (resource) => {
+					if (!resourcesInAPI.includes(resource)) {
+						await vault.adapter.remove(resource)
+						if (debug) {
+							new Notice(`Deleted resource: ${resource}`)
+						}
+					}
+				})
+
+				new Notice(`Sync memos successfully.`)
+
+				this.saveData({
+					...this.settings,
+					lastSyncTime: Date.now(),
+				})
+			} catch (e) {
+				new Notice(
+					"Failed to sync memos. Please check your OpenAPI key and network.",
+					0
+				)
+				console.error(e)
+			}
 		})
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new MemosSyncSettingTab(this.app, this))
-
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, "click", (evt: MouseEvent) => {
-			console.log("click", evt)
-		})
-
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(
-			window.setInterval(() => console.log("setInterval"), 5 * 60 * 1000)
-		)
 	}
 
 	onunload() {}
@@ -102,22 +154,6 @@ export default class MemosSyncPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings)
-	}
-}
-
-class MemosSyncModal extends Modal {
-	constructor(app: App) {
-		super(app)
-	}
-
-	onOpen() {
-		const { contentEl } = this
-		contentEl.setText("Woah!")
-	}
-
-	onClose() {
-		const { contentEl } = this
-		contentEl.empty()
 	}
 }
 
@@ -134,20 +170,47 @@ class MemosSyncSettingTab extends PluginSettingTab {
 
 		containerEl.empty()
 
-		containerEl.createEl("h2", { text: "Settings for my awesome plugin." })
+		containerEl.createEl("h2", { text: "Settings for Memos Sync." })
 
 		new Setting(containerEl)
-			.setName("Setting #1")
-			.setDesc("It's a secret")
+			.setName("OpenAPI")
+			.setDesc("Find your OpenAPI key at your memos settings.")
 			.addText((text) =>
 				text
-					.setPlaceholder("Enter your secret")
+					.setPlaceholder("Enter your OpenAPI key")
 					.setValue(this.plugin.settings.openAPI)
 					.onChange(async (value) => {
 						console.log("Secret: " + value)
 						this.plugin.settings.openAPI = value
 						await this.plugin.saveSettings()
 					})
+			)
+
+		new Setting(containerEl)
+			.setName("Folder to sync")
+			.setDesc("The folder to sync memos and resources.")
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter the folder name")
+					.setValue(this.plugin.settings.folderToSync)
+					.onChange(async (value) => {
+						if (value === "") {
+							new Notice("Please enter the folder name.")
+							return
+						}
+						this.plugin.settings.folderToSync = value
+						await this.plugin.saveSettings()
+					})
+			)
+
+		new Setting(containerEl)
+			.setName("Debug")
+			.setDesc("Enable debug mode.")
+			.addToggle((toggle) =>
+				toggle.setValue(this.plugin.settings.debug).onChange(async (value) => {
+					this.plugin.settings.debug = value
+					await this.plugin.saveSettings()
+				})
 			)
 	}
 }
