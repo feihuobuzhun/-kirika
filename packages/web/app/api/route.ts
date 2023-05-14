@@ -1,4 +1,4 @@
-import { fetchMemosWithResource } from "@kirika/core"
+import { fetchMemosWithResource } from "kirika"
 
 import {
   FROM_OPTIONS_SCHEMA,

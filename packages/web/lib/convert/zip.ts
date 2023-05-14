@@ -1,5 +1,5 @@
-import { MemosWithResource } from "@kirika/core"
 import JSZip from "jszip"
+import { MemosWithResource } from "kirika"
 
 export const zipMemos = (memosWithResource: MemosWithResource) => {
   const zip = new JSZip()
