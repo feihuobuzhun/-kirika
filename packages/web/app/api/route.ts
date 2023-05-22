@@ -2,7 +2,7 @@ import { fetchMemosWithResource } from "kirika"
 
 import {
   FROM_OPTIONS_SCHEMA,
-  OpenAPI_SCHEMA,
+  OPEN_API_SCHEMA,
   TO_OPTIONS_SCHEMA,
 } from "@/lib/convert"
 import { zipMemos } from "@/lib/convert/zip"
@@ -19,14 +19,14 @@ export async function GET(request: Request) {
     return new Response("Invalid option value", { status: 400 })
   }
 
-  const withMemosOpenAPI = OpenAPI_SCHEMA.safeParse(
-    searchParams.get("OpenAPI")
+  const withMemosOpenAPI = OPEN_API_SCHEMA.safeParse(
+    searchParams.get("openAPI")
   ).success
 
   if (from === "memos" && to === "local") {
     if (withMemosOpenAPI) {
-      const OpenAPI = searchParams.get("OpenAPI") as string
-      const WithFrontMatter = searchParams.get("WithFrontMatter") === "true"
+      const OpenAPI = searchParams.get("openAPI") as string
+      const WithFrontMatter = searchParams.get("withFrontMatter") === "true"
       const memosWithResource = await fetchMemosWithResource(
         OpenAPI,
         WithFrontMatter

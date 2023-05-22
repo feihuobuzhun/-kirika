@@ -2,7 +2,12 @@
 
 import { useState } from "react"
 
-import { FromOptions, OpenAPI_SCHEMA, ToOptions } from "@/lib/convert/index"
+import {
+  FromOptions,
+  INGREDIENTS_FOR_FROM_MEMOS_SCHEMA,
+  IngredientsForFromMemos,
+  ToOptions,
+} from "@/lib/convert/index"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -21,26 +26,31 @@ export default function Selection() {
   const [from, setFrom] = useState<FromOptions | null>(null)
   const [to, setTo] = useState<ToOptions | null>(null)
 
-  const defaultIngredients =
-    from === "memos" ? { OpenAPI: "", WithFrontMatter: false } : null
-  const [ingredients, setIngredients] = useState<(string | boolean)[]>([])
+  const defaultIngredients: IngredientsForFromMemos | null =
+    from === "memos" ? { openAPI: "", withFrontMatter: false } : null
+
+  const [ingredients, setIngredients] =
+    useState<IngredientsForFromMemos | null>(null)
 
   const handleConvert = () => {
     if (
       from === "memos" &&
       to === "local" &&
-      OpenAPI_SCHEMA.safeParse(ingredients[0]).success
+      INGREDIENTS_FOR_FROM_MEMOS_SCHEMA.safeParse(ingredients).success
     ) {
-      let url = "/api" + "?from=" + from + "&to=" + to
+      console.log(ingredients)
+      const url =
+        "/api" +
+        "?from=" +
+        from +
+        "&to=" +
+        to +
+        "&openAPI=" +
+        encodeURIComponent(ingredients?.openAPI as string) +
+        "&withFrontMatter=" +
+        String(ingredients?.withFrontMatter)
 
-      if (defaultIngredients && ingredients.length > 0) {
-        url += Object.entries(defaultIngredients).map((pair, index) => {
-          return (
-            "&" + pair[0] + "=" + encodeURIComponent(String(ingredients[index]))
-          )
-        })
-      }
-
+      console.log(url)
       const a = document.createElement("a")
       a.href = url
       a.target = "_blank"
@@ -88,7 +98,8 @@ export default function Selection() {
               !from ||
               !to ||
               (defaultIngredients !== null &&
-                ingredients.length !== Object.keys(defaultIngredients).length)
+                !INGREDIENTS_FOR_FROM_MEMOS_SCHEMA.safeParse(ingredients)
+                  .success)
             }
             onClick={handleConvert}
           >
@@ -107,12 +118,18 @@ export default function Selection() {
                   <div className="flex items-center gap-2">
                     <Checkbox
                       id="WithFrontMatter"
-                      checked={Boolean(ingredients[index])}
+                      checked={ingredients?.withFrontMatter}
                       onCheckedChange={(checked) =>
                         setIngredients((pre) => {
-                          const newIngredients = [...pre]
-                          newIngredients[index] = checked
-                          return newIngredients
+                          if (!pre)
+                            return {
+                              ...defaultIngredients,
+                              withFrontMatter: checked as boolean,
+                            }
+                          return {
+                            ...pre,
+                            withFrontMatter: checked as boolean,
+                          }
                         })
                       }
                     />
@@ -132,12 +149,18 @@ export default function Selection() {
                   type="text"
                   id="ingredient"
                   name="ingredient"
-                  value={ingredients[index] as string}
+                  value={ingredients?.openAPI}
                   onChange={(event) =>
                     setIngredients((pre) => {
-                      const newIngredients = [...pre]
-                      newIngredients[index] = event.target.value
-                      return newIngredients
+                      if (!pre)
+                        return {
+                          ...defaultIngredients,
+                          openAPI: event.target.value,
+                        }
+                      return {
+                        ...pre,
+                        openAPI: event.target.value,
+                      }
                     })
                   }
                 />
