@@ -1,6 +1,4 @@
-# note-convert
-
-> If you encounter problems related to [resource limitations](https://vercel.com/docs/concepts/limits/overview), it is recommended to clone the code for local use
+# kirika
 
 **WIP**
 
