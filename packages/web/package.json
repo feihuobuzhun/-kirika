@@ -14,7 +14,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\" --cache"
   },
   "dependencies": {
-    "kirika": "workspace:*",
+    "@radix-ui/react-checkbox": "^1.0.3",
     "@radix-ui/react-select": "^1.2.1",
     "@radix-ui/react-toast": "^1.1.3",
     "@vercel/analytics": "^1.0.1",
@@ -22,6 +22,7 @@
     "clsx": "^1.2.1",
     "cmdk": "^0.2.0",
     "jszip": "^3.10.1",
+    "kirika": "workspace:*",
     "lucide-react": "0.214.0",
     "next": "^13.4.1",
     "next-themes": "^0.2.1",

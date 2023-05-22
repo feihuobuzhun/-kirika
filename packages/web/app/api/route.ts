@@ -26,7 +26,11 @@ export async function GET(request: Request) {
   if (from === "memos" && to === "local") {
     if (withMemosOpenAPI) {
       const OpenAPI = searchParams.get("OpenAPI") as string
-      const memosWithResource = await fetchMemosWithResource(OpenAPI)
+      const WithFrontMatter = searchParams.get("WithFrontMatter") === "true"
+      const memosWithResource = await fetchMemosWithResource(
+        OpenAPI,
+        WithFrontMatter
+      )
       const zip = await zipMemos(memosWithResource)
       return new Response(zip, {
         headers: {
