@@ -40,7 +40,7 @@ export type MemosWithResource = {
 
 export async function fetchMemosWithResource(
 	openAPI: string,
-	withTimestamp = false
+	withFrontMatter = false
 ): Promise<MemosWithResource> {
 	const url = new URL(openAPI)
 
@@ -80,11 +80,11 @@ export async function fetchMemosWithResource(
 		...memo,
 		content: `
 ${
-	withTimestamp
+	withFrontMatter
 		? `
 ---
-createdAt: ${new Date(memo.createdTs * 1000).toISOString()}
-updatedAt: ${new Date(memo.createdTs * 1000).toISOString()}
+date: ${new Date(memo.createdTs * 1000).toISOString()}
+updated: ${new Date(memo.createdTs * 1000).toISOString()}
 ---
 `
 		: ""
