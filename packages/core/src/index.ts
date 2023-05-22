@@ -78,7 +78,8 @@ export async function fetchMemosWithResource(
 
 	const memoList = memos.data.map((memo) => ({
 		...memo,
-		content: `
+		content:
+			`
 ${
 	withFrontMatter
 		? `
@@ -89,7 +90,6 @@ updated: ${new Date(memo.createdTs * 1000).toISOString()}
 `
 		: ""
 }
-
 ${memo.content}
 
 ${
@@ -102,7 +102,7 @@ ${
 				.join("\n")}`
 		: ""
 }
-`.trim(),
+`.trim() + "\n",
 	}))
 
 	return {
