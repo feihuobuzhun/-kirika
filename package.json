@@ -6,6 +6,7 @@
 	"version": "1.0.0",
 	"scripts": {
 		"build": "pnpm -r --filter=./packages/core run build && pnpm -r --filter=./packages/web run build",
+		"start": "pnpm -r --filter=./packages/web run start",
 		"format": "prettier --write ."
 	},
 	"devDependencies": {
