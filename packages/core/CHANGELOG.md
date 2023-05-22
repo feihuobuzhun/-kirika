@@ -1,6 +1,27 @@
 # Changelog
 
 
+## v0.1.1
+
+[compare changes](https://github.com/hyoban/kirika/compare/v0.1.0...v0.1.1)
+
+
+### 🚀 Enhancements
+
+  - Add WithFrontMatter option ([c42b283](https://github.com/hyoban/kirika/commit/c42b283))
+
+### 🩹 Fixes
+
+  - Blank line ([2111631](https://github.com/hyoban/kirika/commit/2111631))
+
+### 🏡 Chore
+
+  - **release:** V0.1.0 ([f430358](https://github.com/hyoban/kirika/commit/f430358))
+
+### ❤️  Contributors
+
+- Stephen Zhou ([@hyoban](http://github.com/hyoban))
+
 ## v0.1.0
 
 [compare changes](https://github.com/hyoban/kirika/compare/v0.0.1...v0.1.0)
