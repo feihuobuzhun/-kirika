@@ -1,4 +1,4 @@
-import { fetchMemosWithResource } from "kirika"
+import { readMemosFromOpenAPI } from "kirika"
 
 import {
   FROM_OPTIONS_SCHEMA,
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     if (withMemosOpenAPI) {
       const OpenAPI = searchParams.get("openAPI") as string
       const WithFrontMatter = searchParams.get("withFrontMatter") === "true"
-      const memosWithResource = await fetchMemosWithResource(
+      const memosWithResource = await readMemosFromOpenAPI(
         OpenAPI,
         WithFrontMatter
       )

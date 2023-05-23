@@ -1,14 +1,14 @@
 import JSZip from "jszip"
-import { MemosWithResource } from "kirika"
+import type { NotesWithAttachments } from "kirika"
 
-export const zipMemos = (memosWithResource: MemosWithResource) => {
+export const zipMemos = (memosWithResource: NotesWithAttachments) => {
   const zip = new JSZip()
   const memoFolder = zip.folder("memos")
   const resourceFolder = zip.folder("resources")
-  memosWithResource.memos.forEach((memo) => {
-    memoFolder?.file(`${memo.id}.md`, memo.content)
+  memosWithResource.notes.forEach((memo) => {
+    memoFolder?.file(`${memo.title}.md`, memo.content)
   })
-  memosWithResource.resources.forEach((resource) => {
+  memosWithResource.files.forEach((resource) => {
     resourceFolder?.file(resource.filename, resource.content)
   })
   return zip.generateAsync({ type: "blob" })
