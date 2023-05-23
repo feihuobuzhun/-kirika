@@ -1,12 +1,14 @@
 # kirika
 
-**WIP**
-
 This is a website that converts your notes between different platforms.
 Currently it supports:
 
-- memos -> local
+- Memos -> Local
   - export all your notes, including resource files
+- Google Keep -> Memos
+  - import your notes from Google Keep to Memos
+
+If you want to add more platforms, please feel free to open an issue or PR.
 
 ## Other
 
