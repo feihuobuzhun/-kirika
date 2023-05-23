@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
@@ -29,6 +30,8 @@ export default function MemosToLocalForm({
 }: {
   className?: string
 }) {
+  const [isConverting, setIsConverting] = useState(false)
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -38,6 +41,7 @@ export default function MemosToLocalForm({
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsConverting(true)
     fetch(
       `/api?from=memos&to=local&openAPI=${values.openAPI}&withFrontMatter=${values.withFrontMatter}`,
       {
@@ -53,6 +57,7 @@ export default function MemosToLocalForm({
         a.href = url
         a.download = "memos.zip"
         a.click()
+        setIsConverting(false)
       })
   }
   return (
@@ -96,7 +101,9 @@ export default function MemosToLocalForm({
             </FormItem>
           )}
         />
-        <Button type="submit">Convert</Button>
+        <Button type="submit" disabled={isConverting}>
+          Convert
+        </Button>
       </form>
     </Form>
   )
