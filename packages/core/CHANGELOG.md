@@ -1,6 +1,24 @@
 # Changelog
 
 
+## v0.2.2
+
+[compare changes](https://github.com/hyoban/kirika/compare/v0.2.1...v0.2.2)
+
+
+### 🩹 Fixes
+
+  - Api update ([8f9f7bf](https://github.com/hyoban/kirika/commit/8f9f7bf))
+
+### 🏡 Chore
+
+  - **release:** V0.2.1 ([d214f40](https://github.com/hyoban/kirika/commit/d214f40))
+  - Memos id as title ([0f5a0ff](https://github.com/hyoban/kirika/commit/0f5a0ff))
+
+### ❤️  Contributors
+
+- Stephen Zhou ([@hyoban](http://github.com/hyoban))
+
 ## v0.2.1
 
 [compare changes](https://github.com/hyoban/kirika/compare/v0.2.0...v0.2.1)
