@@ -1,6 +1,36 @@
 # Changelog
 
 
+## v0.2.0
+
+[compare changes](https://github.com/hyoban/kirika/compare/v0.1.1...v0.2.0)
+
+
+### 🚀 Enhancements
+
+  - ⚠️  Support google keep ([a6dd1e1](https://github.com/hyoban/kirika/commit/a6dd1e1))
+
+### 🩹 Fixes
+
+  - Validation ([1bac70b](https://github.com/hyoban/kirika/commit/1bac70b))
+
+### 📖 Documentation
+
+  - Update ([8de8fa8](https://github.com/hyoban/kirika/commit/8de8fa8))
+
+### 🏡 Chore
+
+  - **release:** V0.1.1 ([76039ff](https://github.com/hyoban/kirika/commit/76039ff))
+  - Add start command ([36484b1](https://github.com/hyoban/kirika/commit/36484b1))
+
+#### ⚠️  Breaking Changes
+
+  - ⚠️  Support google keep ([a6dd1e1](https://github.com/hyoban/kirika/commit/a6dd1e1))
+
+### ❤️  Contributors
+
+- Stephen Zhou ([@hyoban](http://github.com/hyoban))
+
 ## v0.1.1
 
 [compare changes](https://github.com/hyoban/kirika/compare/v0.1.0...v0.1.1)
