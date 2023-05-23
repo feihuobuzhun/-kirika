@@ -43,7 +43,9 @@ export default function MemosToLocalForm({
   function onSubmit(values: z.infer<typeof formSchema>) {
     setIsConverting(true)
     fetch(
-      `/api?from=memos&to=local&openAPI=${values.openAPI}&withFrontMatter=${values.withFrontMatter}`,
+      `/api?from=memos&to=local&openAPI=${encodeURIComponent(
+        values.openAPI
+      )}&withFrontMatter=${values.withFrontMatter}`,
       {
         method: "POST",
       }
