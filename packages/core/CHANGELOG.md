@@ -1,6 +1,23 @@
 # Changelog
 
 
+## v0.2.1
+
+[compare changes](https://github.com/hyoban/kirika/compare/v0.2.0...v0.2.1)
+
+
+### 🩹 Fixes
+
+  - Export type ([31cf8c4](https://github.com/hyoban/kirika/commit/31cf8c4))
+
+### 🏡 Chore
+
+  - **release:** V0.2.0 ([a35f2a2](https://github.com/hyoban/kirika/commit/a35f2a2))
+
+### ❤️  Contributors
+
+- Stephen Zhou ([@hyoban](http://github.com/hyoban))
+
 ## v0.2.0
 
 [compare changes](https://github.com/hyoban/kirika/compare/v0.1.1...v0.2.0)
