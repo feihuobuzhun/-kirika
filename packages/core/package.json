@@ -25,6 +25,10 @@
     "release": "changelogen --release && npm publish && git push --follow-tags"
   },
   "devDependencies": {
-    "changelogen": "^0.5.3"
+    "changelogen": "^0.5.3",
+    "tsx": "^3.12.7"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1"
   }
 }
