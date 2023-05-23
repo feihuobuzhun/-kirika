@@ -71,7 +71,7 @@ export async function readMemosFromOpenAPI(
 	)
 
 	const notes: Note[] = memos.data.map((memo) => ({
-		title: memo.content.split("\n")[0],
+		title: memo.id.toString(),
 		attachments: memo.resourceList.map((resource) => resource.filename),
 		metadata: {
 			createdAt: String(memo.createdTs * 1000),
