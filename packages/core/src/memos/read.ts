@@ -1,3 +1,4 @@
+import JSZip from "jszip"
 import { Attachment, Note, NotesWithAttachments } from "../common/types"
 
 type MemoAPIResponse = {
@@ -14,11 +15,11 @@ type Memo = {
 	visibility: string
 	pinned: boolean
 	creatorName: string
-	resourceList: ResourceList[]
+	resourceList: Resource[]
 	relationList: any
 }
 
-type ResourceList = {
+type Resource = {
 	id: number
 	creatorId: number
 	createdTs: number
@@ -32,9 +33,37 @@ type ResourceList = {
 	linkedMemoAmount: number
 }
 
+function getResourceUrl(resource: Resource, url: URL) {
+	return (
+		resource.externalLink ||
+		url.origin +
+			"/o/r/" +
+			resource.id +
+			"/" +
+			resource.publicId +
+			"/" +
+			resource.filename
+	)
+}
+
+function isResourceAImage(resource: Resource) {
+	return resource.type.startsWith("image")
+}
+
+function resourceLinkInMarkdown(resource: Resource, url: URL, local = true) {
+	return local
+		? `${isResourceAImage(resource) ? "!" : ""}[${
+				resource.filename
+		  }](../resources/${resource.filename})`
+		: `${isResourceAImage(resource) ? "!" : ""}[${
+				resource.filename
+		  }](${getResourceUrl(resource, url)})`
+}
+
 export async function readMemosFromOpenAPI(
 	openAPI: string,
-	withFrontMatter = false
+	withFrontMatter = false,
+	withOutResources = false
 ): Promise<NotesWithAttachments> {
 	const url = new URL(openAPI)
 
@@ -52,27 +81,21 @@ export async function readMemosFromOpenAPI(
 
 	const files: Attachment[] = await Promise.all(
 		filetedResources.map(async (resource) => {
-			// external link first
-			const memoResourceUrl =
-				resource.externalLink ||
-				url.origin +
-					"/o/r/" +
-					resource.id +
-					"/" +
-					resource.publicId +
-					"/" +
-					resource.filename
-
+			const memoResourceUrl = getResourceUrl(resource, url)
 			return {
 				filename: resource.filename,
 				content: await fetch(memoResourceUrl).then((res) => res.arrayBuffer()),
+				mimetype: resource.type,
 			}
 		})
 	)
 
 	const notes: Note[] = memos.data.map((memo) => ({
+		id: String(memo.id),
 		title: memo.id.toString(),
-		attachments: memo.resourceList.map((resource) => resource.filename),
+		attachments: memo.resourceList.map((resource) =>
+			withOutResources ? getResourceUrl(resource, url) : resource.filename
+		),
 		metadata: {
 			createdAt: String(memo.createdTs * 1000),
 			updatedAt: String(memo.updatedTs * 1000),
@@ -94,9 +117,8 @@ ${memo.content}
 ${
 	memo.resourceList.length > 0
 		? `${memo.resourceList
-				.map(
-					(resource) =>
-						`![${resource.filename}](../resources/${resource.filename})`
+				.map((resource) =>
+					resourceLinkInMarkdown(resource, url, !withOutResources)
 				)
 				.join("\n")}`
 		: ""
@@ -106,6 +128,28 @@ ${
 
 	return {
 		notes,
-		files,
+		files: withOutResources ? [] : files,
 	}
+}
+
+export async function readMemosFromOpenAPIAsZipFile(
+	openAPI: string,
+	withFrontMatter = false,
+	withOutResources = false
+) {
+	const memosWithResource = await readMemosFromOpenAPI(
+		openAPI,
+		withFrontMatter,
+		withOutResources
+	)
+	const zip = new JSZip()
+	const memoFolder = zip.folder("memos")
+	const resourceFolder = zip.folder("resources")
+	memosWithResource.notes.forEach((memo) => {
+		memoFolder?.file(`${memo.title}.md`, memo.content)
+	})
+	memosWithResource.files.forEach((resource) => {
+		resourceFolder?.file(resource.filename, resource.content)
+	})
+	return zip.generateAsync({ type: "blob" })
 }

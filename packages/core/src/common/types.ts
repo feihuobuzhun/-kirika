@@ -12,8 +12,12 @@ export type Metadata = {
 }
 
 export type Note = {
+	id?: string
 	title: string
 	content: string
+	/**
+	 * file names of attachments or web links
+	 */
 	attachments: string[]
 	metadata: Metadata
 }
