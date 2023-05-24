@@ -1,6 +1,19 @@
 # Changelog
 
 
+## v0.2.4
+
+[compare changes](https://github.com/hyoban/kirika/compare/v0.2.4...v0.2.4)
+
+
+### 🩹 Fixes
+
+  - Type update ([aa5f773](https://github.com/hyoban/kirika/commit/aa5f773))
+
+### ❤️  Contributors
+
+- Stephen Zhou ([@hyoban](http://github.com/hyoban))
+
 ## v0.2.3
 
 [compare changes](https://github.com/hyoban/kirika/compare/v0.2.2...v0.2.3)
