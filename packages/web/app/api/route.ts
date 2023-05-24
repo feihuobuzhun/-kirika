@@ -1,10 +1,8 @@
 import {
   readGoogleKeepTakeout,
-  readMemosFromOpenAPI,
+  readMemosFromOpenAPIAsZipFile,
   writeMemosWithResources,
 } from "kirika"
-
-import { zipMemos } from "@/lib/convert/zip"
 
 export async function POST(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -15,11 +13,7 @@ export async function POST(request: Request) {
     try {
       const OpenAPI = searchParams.get("openAPI") as string
       const WithFrontMatter = searchParams.get("withFrontMatter") === "true"
-      const memosWithResource = await readMemosFromOpenAPI(
-        OpenAPI,
-        WithFrontMatter
-      )
-      const zip = await zipMemos(memosWithResource)
+      const zip = await readMemosFromOpenAPIAsZipFile(OpenAPI, WithFrontMatter)
       return new Response(zip, {
         headers: {
           "Content-Type": "application/zip",
