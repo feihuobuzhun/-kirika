@@ -92,9 +92,17 @@ export async function readMemosFromOpenAPI(
 
 	const notes: Note[] = memos.data.map((memo) => ({
 		id: String(memo.id),
-		title: memo.id.toString(),
+		title: memo.content.split("\n")[0].slice(0, 20) + "...",
 		attachments: memo.resourceList.map((resource) =>
-			withOutResources ? getResourceUrl(resource, url) : resource.filename
+			withOutResources
+				? {
+						url: getResourceUrl(resource, url),
+						markdown: resourceLinkInMarkdown(resource, url, false),
+				  }
+				: {
+						url: resource.filename,
+						markdown: resourceLinkInMarkdown(resource, url),
+				  }
 		),
 		metadata: {
 			createdAt: String(memo.createdTs * 1000),
@@ -113,16 +121,6 @@ updated: ${new Date(memo.createdTs * 1000).toISOString()}
 		: ""
 }
 ${memo.content}
-
-${
-	memo.resourceList.length > 0
-		? `${memo.resourceList
-				.map((resource) =>
-					resourceLinkInMarkdown(resource, url, !withOutResources)
-				)
-				.join("\n")}`
-		: ""
-}
 `.trim() + "\n",
 	}))
 
@@ -146,7 +144,19 @@ export async function readMemosFromOpenAPIAsZipFile(
 	const memoFolder = zip.folder("memos")
 	const resourceFolder = zip.folder("resources")
 	memosWithResource.notes.forEach((memo) => {
-		memoFolder?.file(`${memo.title}.md`, memo.content)
+		memoFolder?.file(
+			`${memo.id}.md`,
+			memo.content + "\n" + typeof memo.attachments[0] !== "string"
+				? memo.attachments
+						.map((attachment) => {
+							if (typeof attachment !== "string") {
+								return attachment.markdown
+							}
+						})
+						.join("\n")
+						.trim()
+				: ""
+		)
 	})
 	memosWithResource.files.forEach((resource) => {
 		resourceFolder?.file(resource.filename, resource.content)

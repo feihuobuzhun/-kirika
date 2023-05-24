@@ -29,6 +29,8 @@
     "tsx": "^3.12.7"
   },
   "dependencies": {
+    "@notionhq/client": "^2.2.5",
+    "@tryfabric/martian": "^1.2.4",
     "jszip": "^3.10.1"
   }
 }

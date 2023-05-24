@@ -18,7 +18,12 @@ export type Note = {
 	/**
 	 * file names of attachments or web links
 	 */
-	attachments: string[]
+	attachments:
+		| string[]
+		| {
+				url: string
+				markdown: string
+		  }[]
 	metadata: Metadata
 }
 
