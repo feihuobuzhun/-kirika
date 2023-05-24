@@ -100,7 +100,16 @@ export default function MemosToNotionForm({
                 <Input {...field} />
               </FormControl>
               <FormDescription>
-                Find in your Notion Integrations.
+                Find in your{" "}
+                <a
+                  href="https://www.notion.so/my-integrations"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  Notion Integrations
+                </a>
+                .
               </FormDescription>
               <FormMessage />
             </FormItem>
