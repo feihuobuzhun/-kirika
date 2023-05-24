@@ -57,7 +57,17 @@ export async function writeMemosWithResources(
 			content: note.content,
 			visibility: "PRIVATE",
 			resourceIdList: createdResourceList
-				.filter((r) => note.attachments.includes(r.filename))
+				.filter((r) => {
+					if (note.attachments.length === 0) {
+						return false
+					}
+
+					if (typeof note.attachments[0] === "string") {
+						return (note.attachments as string[]).includes(r.filename)
+					}
+
+					return false
+				})
 				.map((r) => r.id),
 			relationList: [],
 		}
