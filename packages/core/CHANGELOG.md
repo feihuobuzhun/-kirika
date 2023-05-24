@@ -1,6 +1,38 @@
 # Changelog
 
 
+## v0.2.3
+
+[compare changes](https://github.com/hyoban/kirika/compare/v0.2.2...v0.2.3)
+
+
+### 🚀 Enhancements
+
+  - Support google keep ([724b72b](https://github.com/hyoban/kirika/commit/724b72b))
+  - Allow keep resource remain ([c986b19](https://github.com/hyoban/kirika/commit/c986b19))
+
+### 🩹 Fixes
+
+  - Encode uri ([1fedb9d](https://github.com/hyoban/kirika/commit/1fedb9d))
+
+### 💅 Refactors
+
+  - Page for each convert ([e72ce9b](https://github.com/hyoban/kirika/commit/e72ce9b))
+
+### 📖 Documentation
+
+  - Update ([b1fa942](https://github.com/hyoban/kirika/commit/b1fa942))
+
+### 🏡 Chore
+
+  - **release:** V0.2.2 ([fd89945](https://github.com/hyoban/kirika/commit/fd89945))
+  - Add convert indicator ([63d6e0f](https://github.com/hyoban/kirika/commit/63d6e0f))
+  - Use readMemosFromOpenAPIAsZipFile ([aba12e7](https://github.com/hyoban/kirika/commit/aba12e7))
+
+### ❤️  Contributors
+
+- Stephen Zhou ([@hyoban](http://github.com/hyoban))
+
 ## v0.2.2
 
 [compare changes](https://github.com/hyoban/kirika/compare/v0.2.1...v0.2.2)
