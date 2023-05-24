@@ -1,6 +1,8 @@
 import {
   readGoogleKeepTakeout,
+  readMemosFromOpenAPI,
   readMemosFromOpenAPIAsZipFile,
+  syncNotesWithNotion,
   writeMemosWithResources,
 } from "kirika"
 
@@ -31,7 +33,25 @@ export async function POST(request: Request) {
       const zip = await request.arrayBuffer()
       const memosWithResource = await readGoogleKeepTakeout(zip)
       await writeMemosWithResources(openAPI, memosWithResource)
-      return new Response("Success", { status: 200 })
+      return new Response("Your Google Keep notes are imported", {
+        status: 200,
+      })
+    } catch (error) {
+      console.error(error)
+      return new Response("Failed to convert", { status: 500 })
+    }
+  } else if (from === "memos" && to === "notion") {
+    try {
+      const openAPI = searchParams.get("openAPI") as string
+      const notionToken = searchParams.get("notionToken") as string
+      const notionDatabaseId = searchParams.get("notionDatabaseId") as string
+      const memosWithResource = await readMemosFromOpenAPI(openAPI, false, true)
+      await syncNotesWithNotion(
+        memosWithResource,
+        notionToken,
+        notionDatabaseId
+      )
+      return new Response("Your memos are synced with Notion", { status: 200 })
     } catch (error) {
       console.error(error)
       return new Response("Failed to convert", { status: 500 })

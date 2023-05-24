@@ -22,6 +22,19 @@ export default function Selection() {
           <CardFooter>1. OpenAPI</CardFooter>
         </Card>
       </Link>
+      <Link href="/memos-to-notion">
+        <Card>
+          <CardHeader>
+            <CardTitle>Memos -{">"} Notion</CardTitle>
+          </CardHeader>
+          <CardContent>Sync your Memos to Notion Database.</CardContent>
+          <CardFooter>
+            <p>1. OpenAPI</p>
+            <p>2. Notion Token</p>
+            <p>3. Notion Database ID</p>
+          </CardFooter>
+        </Card>
+      </Link>
       <Link href="/google-keep-to-memos">
         <Card>
           <CardHeader>

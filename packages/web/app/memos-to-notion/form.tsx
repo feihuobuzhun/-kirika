@@ -1,11 +1,15 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 
-import { OPEN_API_SCHEMA } from "@/lib/convert"
+import {
+  NOTION_DATABASE_ID_SCHEMA,
+  NOTION_TOKEN_SCHEMA,
+  OPEN_API_SCHEMA,
+} from "@/lib/convert"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -22,42 +26,37 @@ import { useToast } from "@/components/ui/use-toast"
 
 const formSchema = z.object({
   openAPI: OPEN_API_SCHEMA,
-  fileName: z.string().refine((val) => val.endsWith(".zip")),
+  notionToken: NOTION_TOKEN_SCHEMA,
+  notionDatabaseId: NOTION_DATABASE_ID_SCHEMA,
 })
 
-export default function GoogleKeepToMemosForm({
+export default function MemosToNotionForm({
   className,
 }: {
   className?: string
 }) {
   const { toast } = useToast()
-  const uploadRef = useRef<HTMLInputElement>(null)
   const [isConverting, setIsConverting] = useState(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       openAPI: "",
-      fileName: "",
+      notionToken: "",
+      notionDatabaseId: "",
     },
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     setIsConverting(true)
-
-    // get the file
-    const file = uploadRef.current?.files?.[0]
-
-    const formData = new FormData()
-    formData.append("file", file as Blob, values.fileName)
-
     fetch(
-      `/api?from=google-keep&to=memos&openAPI=${encodeURIComponent(
+      `/api?from=memos&to=notion&openAPI=${encodeURIComponent(
         values.openAPI
-      )}`,
+      )}&notionToken=${encodeURIComponent(
+        values.notionToken
+      )}&notionDatabaseId=${encodeURIComponent(values.notionDatabaseId)}`,
       {
         method: "POST",
-        body: formData,
       }
     )
       .then((res) => {
@@ -90,33 +89,34 @@ export default function GoogleKeepToMemosForm({
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
-          name="fileName"
+          name="notionToken"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Google Keep Archive</FormLabel>
+              <FormLabel>Notion Token</FormLabel>
               <FormControl>
-                <Input
-                  {...field}
-                  type="file"
-                  accept=".zip,application/zip,application/x-zip,application/x-zip-compressed"
-                  id="file"
-                  name="file"
-                  ref={uploadRef}
-                />
+                <Input {...field} />
               </FormControl>
               <FormDescription>
-                Download your Google Keep archive from{" "}
-                <a
-                  href="https://takeout.google.com/settings/takeout/custom/keep"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Google Takeout
-                </a>
-                .
+                Find in your Notion Integrations.
               </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="notionDatabaseId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Notion Database ID</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormDescription>Find in your Notion Page URL.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
