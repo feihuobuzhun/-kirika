@@ -1,10 +1,14 @@
 # kirika
 
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/iDHSE0?referralCode=nSuVS_)
+
 This is a website that converts your notes between different platforms.
 Currently it supports:
 
 - Memos -> Local
   - export all your notes, including resource files
+- Memos -> Notion
+  - sync your memos to Notion
 - Google Keep -> Memos
   - import your notes from Google Keep to Memos
 
